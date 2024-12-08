@@ -29,3 +29,7 @@ decision making tasks through reinforcement learning.
 
 - Regression: sin(x)
 - Classification: MNIST
+
+## License
+
+BackpropNet is available under the terms of the GPLv3 license.
