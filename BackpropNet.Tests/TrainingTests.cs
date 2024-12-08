@@ -2,26 +2,6 @@ namespace BackpropNet.Tests;
 
 public class Training_Regression_Tests
 {
-    private FlatFeatureDataset createDataset(int trainSize, int testSize)
-    {
-        var rng = new Random();
-        Func<int, Func<double, double>, (double, double)[]> sample =
-            (size, func) => Enumerable.Range(0, size)
-                .Select(i => (double)rng.NextDouble() * 20 - 10)
-                .Select(x => ((double)x, (double)func(x)))
-                .ToArray();
-
-        var trueFunc = (double x) => (double)Math.Sin(x);
-        var trainData = sample(trainSize, trueFunc);
-        var testData = sample(testSize, trueFunc);
-
-        var trainX = Matrix2D.FromData(trainSize, 1, trainData.Select(x => x.Item1).ToArray());
-        var trainY = Matrix2D.FromData(trainSize, 1, trainData.Select(x => x.Item2).ToArray());
-        var testX = Matrix2D.FromData(testSize, 1, testData.Select(x => x.Item1).ToArray());
-        var testY = Matrix2D.FromData(testSize, 1, testData.Select(x => x.Item2).ToArray());
-        return new FlatFeatureDataset(trainX, trainY, testX, testY);
-    }
-
     private FFModel createModel()
         => new FFModel(new ILayer[] {
             new DenseLayer(64),
@@ -36,7 +16,7 @@ public class Training_Regression_Tests
     {
         int batchSize = 64;
         var model = createModel();
-        var dataset = createDataset(trainSize: 10_000, testSize: 1_000);
+        var dataset = SinusDataset.CreateDataset(trainSize: 10_000, testSize: 1_000);
         var optimizer = new AdamOpt(learnRate: 0.002);
         var lossFunc = new MeanSquaredError();
 
@@ -45,7 +25,7 @@ public class Training_Regression_Tests
         session.Train(epochs: 20);
         double testLoss = session.Eval();
 
-        Assert.True(testLoss < 0.01);
+        testLoss.Should().BeLessThan(0.01);
     }
 }
 
@@ -75,7 +55,30 @@ public class Training_Classification_Tests
         session.Train(epochs: 1);
         double accuracy = accMetric.Eval(model, dataset);
 
-        Assert.True(accuracy > 0.8);
+        accuracy.Should().BeGreaterThan(0.8);
+    }
+}
+
+public static class SinusDataset
+{
+    public static FlatFeatureDataset CreateDataset(int trainSize, int testSize)
+    {
+        var rng = new Random();
+        Func<int, Func<double, double>, (double, double)[]> sample =
+            (size, func) => Enumerable.Range(0, size)
+                .Select(i => (double)rng.NextDouble() * 20 - 10)
+                .Select(x => ((double)x, (double)func(x)))
+                .ToArray();
+
+        var trueFunc = (double x) => (double)Math.Sin(x);
+        var trainData = sample(trainSize, trueFunc);
+        var testData = sample(testSize, trueFunc);
+
+        var trainX = Matrix2D.FromData(trainSize, 1, trainData.Select(x => x.Item1).ToArray());
+        var trainY = Matrix2D.FromData(trainSize, 1, trainData.Select(x => x.Item2).ToArray());
+        var testX = Matrix2D.FromData(testSize, 1, testData.Select(x => x.Item1).ToArray());
+        var testY = Matrix2D.FromData(testSize, 1, testData.Select(x => x.Item2).ToArray());
+        return new FlatFeatureDataset(trainX, trainY, testX, testY);
     }
 }
 

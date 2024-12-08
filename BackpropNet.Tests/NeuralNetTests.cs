@@ -13,8 +13,8 @@ public class NeuralNet_MeanSquaredError_Tests
         double lossSameData = lossFunc.Loss(pred, truthSame);
         double lossDistData = lossFunc.Loss(pred, truth1Dist);
 
-        Assert.Equal(0, lossSameData);
-        Assert.Equal(3, lossDistData);
+        lossSameData.Should().BeApproximately(0, 1e-5);
+        lossDistData.Should().BeApproximately(3, 1e-5);
     }
 
     [Fact]
@@ -27,9 +27,8 @@ public class NeuralNet_MeanSquaredError_Tests
         var deltas = Matrix2D.Zeros(2, 3);
         lossFunc.LossDeltas(pred, truth, deltas);
 
-        var exp = Matrix2D.FromData(2, 3,
-            new double[] { -0.5, -0.5, -0.5, -0.5, -0.5, -0.5 });
-        Assert.Equal(exp, deltas);
+        var exp = Matrix2D.FromData(2, 3, new double[] { -0.5, -0.5, -0.5, -0.5, -0.5, -0.5 });
+        deltas.Should().BeEquivalentTo(exp);
     }
 }
 
@@ -46,8 +45,8 @@ public class NeuralNet_CrossEntropyLoss_Tests
         double lossSameData = lossFunc.Loss(pred, truthSame);
         double lossDistData = lossFunc.Loss(pred, truthDist);
 
-        Assert.True(Math.Abs(lossSameData) < 1e-4);
-        Assert.True(Math.Abs(lossDistData) > 1);
+        lossSameData.Should().BeApproximately(0, 1e-4);
+        Math.Abs(lossDistData).Should().BeGreaterThan(1);
     }
 
     [Fact]
@@ -63,8 +62,8 @@ public class NeuralNet_CrossEntropyLoss_Tests
         lossFunc.LossDeltas(pred, truthSame, deltasSame);
         lossFunc.LossDeltas(pred, truthDist, deltasDist);
 
-        Assert.Equal(truthSame, deltasSame);
-        Assert.Equal(truthDist, deltasDist);
+        deltasSame.Should().BeEquivalentTo(truthSame);
+        deltasDist.Should().BeEquivalentTo(truthDist);
     }
 }
 
@@ -81,8 +80,8 @@ public class NeuralNet_SparseCrossEntropyLoss_Tests
         double lossSameData = lossFunc.Loss(pred, truthSame);
         double lossDistData = lossFunc.Loss(pred, truthDist);
 
-        Assert.True(Math.Abs(lossSameData) < 1e-4);
-        Assert.True(Math.Abs(lossDistData) > 1);
+        lossSameData.Should().BeApproximately(0, 1e-4);
+        Math.Abs(lossDistData).Should().BeGreaterThan(1);
     }
 
     [Fact]
@@ -100,8 +99,8 @@ public class NeuralNet_SparseCrossEntropyLoss_Tests
 
         var expDeltasSame = Matrix2D.FromData(2, 3, new double[] { 0, 1, 0, 1, 0, 0 });
         var expDeltasDist = Matrix2D.FromData(2, 3, new double[] { 0, 0, 1, 0, 1, 0 });
-        Assert.Equal(expDeltasSame, deltasSame);
-        Assert.Equal(expDeltasDist, deltasDist);
+        deltasSame.Should().BeEquivalentTo(expDeltasSame);
+        deltasDist.Should().BeEquivalentTo(expDeltasDist);
     }
 }
 
@@ -120,10 +119,10 @@ public class NeuralNet_DenseLayer_Tests
         dense.Compile(inputDims);
         dense.CompileCache(input, deltasOut);
 
-        Assert.Equal(inputDims, dense.Weights.NumRows);
-        Assert.Equal(outputDims, dense.Weights.NumCols);
-        Assert.Equal(1, dense.Biases.NumRows);
-        Assert.Equal(outputDims, dense.Biases.NumCols);
+        dense.Weights.NumRows.Should().Be(inputDims);
+        dense.Weights.NumCols.Should().Be(outputDims);
+        dense.Biases.NumRows.Should().Be(1);
+        dense.Biases.NumCols.Should().Be(outputDims);
     }
 
     [Fact]
@@ -139,16 +138,16 @@ public class NeuralNet_DenseLayer_Tests
         dense.Compile(inputDims);
         dense.CompileCache(input, deltasOut);
 
-        Assert.Equal(batchSize, dense.Cache.Input.NumRows);
-        Assert.Equal(inputDims, dense.Cache.Input.NumCols);
-        Assert.Equal(batchSize, dense.Cache.Output.NumRows);
-        Assert.Equal(outputDims, dense.Cache.Output.NumCols);
-        Assert.Equal(batchSize, dense.Cache.DeltasIn.NumRows);
-        Assert.Equal(outputDims, dense.Cache.DeltasIn.NumCols);
-        Assert.Equal(batchSize, dense.Cache.DeltasOut.NumRows);
-        Assert.Equal(inputDims, dense.Cache.DeltasOut.NumCols);
-        Assert.Equal(1, dense.Cache.Gradients.NumRows);
-        Assert.Equal((inputDims + 1) * outputDims, dense.Cache.Gradients.NumCols);
+        dense.Cache.Input.NumRows.Should().Be(batchSize);
+        dense.Cache.Input.NumCols.Should().Be(inputDims);
+        dense.Cache.Output.NumRows.Should().Be(batchSize);
+        dense.Cache.Output.NumCols.Should().Be(outputDims);
+        dense.Cache.DeltasIn.NumRows.Should().Be(batchSize);
+        dense.Cache.DeltasIn.NumCols.Should().Be(outputDims);
+        dense.Cache.DeltasOut.NumRows.Should().Be(batchSize);
+        dense.Cache.DeltasOut.NumCols.Should().Be(inputDims);
+        dense.Cache.Gradients.NumRows.Should().Be(1);
+        dense.Cache.Gradients.NumCols.Should().Be((inputDims + 1) * outputDims);
     }
 
     [Fact]
@@ -167,7 +166,7 @@ public class NeuralNet_DenseLayer_Tests
         var pred = dense.Cache.Output;
 
         var exp = Matrix2D.FromData(2, 1, new double[] { 5 + 1, 14 + 1 });
-        Assert.Equal(exp, pred);
+        pred.Should().BeEquivalentTo(exp);
     }
 
     [Fact]
@@ -196,11 +195,11 @@ public class NeuralNet_DenseLayer_Tests
         //           [ 0.5]]
 
         var expWeightGrads = Matrix2D.FromData(3, 1, new double[] { 1.5, 1.5, 1.5 });
-        Assert.Equal(expWeightGrads, dense.WeightGrads);
         var expBiasGrads = Matrix2D.FromData(1, 1, new double[] { 0 });
-        Assert.Equal(expBiasGrads, dense.BiasGrads);
         var expDeltasOut = Matrix2D.FromData(2, 3, new double[] { 0, -0.5, -1, 0, 0.5, 1 });
-        Assert.Equal(expDeltasOut, dense.Cache.DeltasOut);
+        dense.WeightGrads.Should().BeEquivalentTo(expWeightGrads);
+        dense.BiasGrads.Should().BeEquivalentTo(expBiasGrads);
+        dense.Cache.DeltasOut.Should().BeEquivalentTo(expDeltasOut);
     }
 
     [Fact]
@@ -230,7 +229,7 @@ public class NeuralNet_DenseLayer_Tests
         }
 
         double loss = lossFunc.Loss(dense.Cache.Output, yTrue);
-        Assert.True(loss < 0.01);
+        loss.Should().BeLessThan(0.01);
     }
 }
 
@@ -247,15 +246,15 @@ public class NeuralNet_ReLULayer_Tests
         relu.Compile(3);
         relu.CompileCache(input, deltasOut);
 
-        Assert.Equal(batchSize, relu.Cache.Input.NumRows);
-        Assert.Equal(dims, relu.Cache.Input.NumCols);
-        Assert.Equal(batchSize, relu.Cache.Output.NumRows);
-        Assert.Equal(dims, relu.Cache.Output.NumCols);
-        Assert.Equal(batchSize, relu.Cache.DeltasIn.NumRows);
-        Assert.Equal(dims, relu.Cache.DeltasIn.NumCols);
-        Assert.Equal(batchSize, relu.Cache.DeltasOut.NumRows);
-        Assert.Equal(dims, relu.Cache.DeltasOut.NumCols);
-        Assert.Equal(Matrix2D.Null(), relu.Cache.Gradients);
+        relu.Cache.Input.NumRows.Should().Be(batchSize);
+        relu.Cache.Input.NumCols.Should().Be(dims);
+        relu.Cache.Output.NumRows.Should().Be(batchSize);
+        relu.Cache.Output.NumCols.Should().Be(dims);
+        relu.Cache.DeltasIn.NumRows.Should().Be(batchSize);
+        relu.Cache.DeltasIn.NumCols.Should().Be(dims);
+        relu.Cache.DeltasOut.NumRows.Should().Be(batchSize);
+        relu.Cache.DeltasOut.NumCols.Should().Be(dims);
+        relu.Cache.Gradients.Should().BeEquivalentTo(Matrix2D.Null());
     }
 
     [Fact]
@@ -270,7 +269,7 @@ public class NeuralNet_ReLULayer_Tests
         relu.Forward();
 
         var expOutput = Matrix2D.FromData(2, 3, new double[] { 0, 0, 0, 1, 2, 3 });
-        Assert.Equal(expOutput, relu.Cache.Output);
+        relu.Cache.Output.Should().BeEquivalentTo(expOutput);
     }
 
     [Fact]
@@ -288,7 +287,7 @@ public class NeuralNet_ReLULayer_Tests
         relu.Backward();
 
         var expDeltasOut = Matrix2D.FromData(2, 3, new double[] { 0, 0, 1, 1, 1, 1 });
-        Assert.Equal(expDeltasOut, relu.Cache.DeltasOut);
+        relu.Cache.DeltasOut.Should().BeEquivalentTo(expDeltasOut);
     }
 }
 
@@ -305,15 +304,15 @@ public class NeuralNet_SoftmaxLayer_Tests
         softmax.Compile(3);
         softmax.CompileCache(input, deltasOut);
 
-        Assert.Equal(batchSize, softmax.Cache.Input.NumRows);
-        Assert.Equal(dims, softmax.Cache.Input.NumCols);
-        Assert.Equal(batchSize, softmax.Cache.Output.NumRows);
-        Assert.Equal(dims, softmax.Cache.Output.NumCols);
-        Assert.Equal(batchSize, softmax.Cache.DeltasIn.NumRows);
-        Assert.Equal(dims, softmax.Cache.DeltasIn.NumCols);
-        Assert.Equal(batchSize, softmax.Cache.DeltasOut.NumRows);
-        Assert.Equal(dims, softmax.Cache.DeltasOut.NumCols);
-        Assert.Equal(Matrix2D.Null(), softmax.Cache.Gradients);
+        softmax.Cache.Input.NumRows.Should().Be(batchSize);
+        softmax.Cache.Input.NumCols.Should().Be(dims);
+        softmax.Cache.Output.NumRows.Should().Be(batchSize);
+        softmax.Cache.Output.NumCols.Should().Be(dims);
+        softmax.Cache.DeltasIn.NumRows.Should().Be(batchSize);
+        softmax.Cache.DeltasIn.NumCols.Should().Be(dims);
+        softmax.Cache.DeltasOut.NumRows.Should().Be(batchSize);
+        softmax.Cache.DeltasOut.NumCols.Should().Be(dims);
+        softmax.Cache.Gradients.Should().BeEquivalentTo(Matrix2D.Null());
     }
 
     [Fact]
@@ -329,8 +328,8 @@ public class NeuralNet_SoftmaxLayer_Tests
 
         var sums = Matrix2D.Zeros(2, 1);
         Matrix2D.RowSum(softmax.Cache.Output, sums);
-        Assert.True(Math.Abs(sums.At(0, 0) - 1) < 1e-4);
-        Assert.True(Math.Abs(sums.At(1, 0) - 1) < 1e-4);
+        Math.Abs(sums.At(0, 0)).Should().BeApproximately(1, 1e-4);
+        Math.Abs(sums.At(1, 0)).Should().BeApproximately(1, 1e-4);
     }
 
     [Fact]
@@ -349,7 +348,7 @@ public class NeuralNet_SoftmaxLayer_Tests
         softmax.Backward();
 
         var expDeltasOut = Matrix2D.FromData(2, 3, new double[] { -1, 1, 0, 0, 0, 0 });
-        Assert.Equal(expDeltasOut, softmax.Cache.DeltasOut);
+        softmax.Cache.DeltasOut.Should().BeEquivalentTo(expDeltasOut);
     }
 }
 
@@ -368,10 +367,10 @@ public class NeuralNet_FeedForwardModel_Tests
 
         model.Compile(batchSize, inputDims);
 
-        Assert.Equal(batchSize, layers[0].Cache.Input.NumRows);
-        Assert.Equal(inputDims, layers[0].Cache.Input.NumCols);
-        Assert.Equal(batchSize, layers[2].Cache.Output.NumRows);
-        Assert.Equal(outputDims, layers[2].Cache.Output.NumCols);
+        layers[0].Cache.Input.NumRows.Should().Be(batchSize);
+        layers[0].Cache.Input.NumCols.Should().Be(inputDims);
+        layers[2].Cache.Output.NumRows.Should().Be(batchSize);
+        layers[2].Cache.Output.NumCols.Should().Be(outputDims);
     }
 
     [Fact]
@@ -394,6 +393,6 @@ public class NeuralNet_FeedForwardModel_Tests
 
         var pred = model.PredictBatch(inputs);
 
-        Assert.Equal(inputs, pred);
+        pred.Should().BeEquivalentTo(inputs);
     }
 }
